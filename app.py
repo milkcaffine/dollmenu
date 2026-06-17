@@ -38,12 +38,12 @@ with st.sidebar:
     padding = st.slider("사진 사이 여백 (px)", 0, 80, 30)
    
     # 이름 설정 (독립적으로 크게)
-    name_font_size_base = st.slider("이름 글자 크기", 80, 800, 320, 10)
+    name_font_size_base = st.slider("이름 글자 크기", 10, 120, 36, 2)
     name_color = st.color_picker("이름 색상", "#FFFFFF")
     name_y_offset = st.slider("이름 위치 (아래로)", 0, 150, 45)
    
-    title_text = st.text_input("전체 제목", "Haemin's Doll Collection")
-    title_size = st.slider("전체 제목 글자 크기", 40, 250, 100)
+    title_text = st.text_input("전체 제목", "x's Doll Collection")
+    title_size = st.slider("전체 제목 글자 크기", 20, 200, 60, 5)
     title_color = st.color_picker("제목 색상", "#FFFFFF")
 
 # ==================== 메인 ====================
