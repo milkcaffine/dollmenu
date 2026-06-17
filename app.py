@@ -11,7 +11,7 @@ st.caption("SD/BJD 인형 사진 → 예쁜 콜라주 JPG")
 with st.sidebar:
     st.header("⚙️ 설정")
     
-    cols_per_row = st.slider("한 줄에 몇 장?", 1, 10, 4)  # 최대 10장
+    cols_per_row = st.slider("한 줄에 몇 장?", 1, 10, 4)
     thumb_size = st.slider("사진 기본 크기 (px)", 150, 600, 320)
     scale_factor = st.slider("최종 해상도 배율", 1.0, 3.0, 1.5, 0.1)
     
@@ -21,7 +21,6 @@ with st.sidebar:
     
     padding = st.slider("사진 사이 여백 (px)", 0, 60, 20)
     
-    # 이름 글자 크기 (이번에 크게 강화)
     name_font_size = st.slider("인형 이름 글자 크기", 15, 60, 36)
     name_color = st.color_picker("이름 색상", "#FFFFFF")
     
@@ -39,7 +38,7 @@ uploaded_files = st.file_uploader(
 if uploaded_files:
     st.subheader("📝 각 인형 이름 입력")
     names = []
-    cols = st.columns(min(4, len(uploaded_files)))  # 입력창 배치
+    cols = st.columns(min(4, len(uploaded_files)))
     
     for idx, file in enumerate(uploaded_files):
         with cols[idx % len(cols)]:
@@ -47,11 +46,11 @@ if uploaded_files:
             name = st.text_input(f"사진 {idx+1}", value=default_name, key=f"name_{idx}")
             names.append(name)
     
-    if st.button("🎨 콜라주 생성하기", type="primary", size="large"):
+    # size="large" 제거 + use_container_width로 크게 표시
+    if st.button("🎨 콜라주 생성하기", type="primary", use_container_width=True):
         with st.spinner("콜라주 만드는 중... (조금만 기다려주세요)"):
             images = [Image.open(file).convert("RGB") for file in uploaded_files]
             
-            # 리사이즈 & 정사각형
             final_thumb = int(thumb_size * scale_factor)
             thumbs = []
             for img in images:
@@ -60,7 +59,6 @@ if uploaded_files:
                     img = ImageOps.expand(img, border=border_width, fill=border_color)
                 thumbs.append(img)
             
-            # 그리드 계산
             n = len(thumbs)
             rows = math.ceil(n / cols_per_row)
             cell_size = final_thumb + border_width * 2
@@ -70,7 +68,6 @@ if uploaded_files:
             collage = Image.new('RGB', (total_width, total_height), color=bg_color)
             draw = ImageDraw.Draw(collage)
             
-            # 폰트 로드
             try:
                 name_font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", name_font_size)
                 title_font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", title_size)
@@ -78,28 +75,23 @@ if uploaded_files:
                 name_font = ImageFont.load_default()
                 title_font = ImageFont.load_default()
             
-            # 사진 + 이름 배치
             for idx, (thumb, name) in enumerate(zip(thumbs, names)):
                 row = idx // cols_per_row
                 col = idx % cols_per_row
-                
                 x = col * (cell_size + padding)
                 y = row * (cell_size + padding)
                 
                 collage.paste(thumb, (x, y))
                 
-                # 인형 이름 (아래 중앙)
                 text_width = draw.textlength(name, font=name_font)
                 text_x = x + (cell_size - text_width) // 2
                 text_y = y + cell_size + 12
                 draw.text((text_x, text_y), name, fill=name_color, font=name_font)
             
-            # 전체 제목
             title_w = draw.textlength(title_text, font=title_font)
             draw.text(((total_width - title_w)/2, total_height - 110), 
                      title_text, fill=title_color, font=title_font)
             
-            # 결과
             st.image(collage, caption="✅ 완성!", use_column_width=True)
             
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
