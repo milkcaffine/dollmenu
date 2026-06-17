@@ -1,7 +1,20 @@
-import streamlit as st
+pythonimport streamlit as st
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import math
+import os
 from datetime import datetime
+
+def load_font(size):
+    candidates = [
+        "fonts/NotoSansKR-Regular.ttf",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+    ]
+    for path in candidates:
+        if os.path.exists(path):
+            return ImageFont.truetype(path, size)
+    st.warning("CJK 폰트를 못 찾았어요. 글자가 작게 나옵니다.")
+    return ImageFont.load_default()
 
 st.set_page_config(page_title="인형 프로필 콜라주 메이커", layout="wide")
 st.title("🦋 인형 프로필 콜라주 메이커")
@@ -76,12 +89,8 @@ if uploaded_files:
             collage = Image.new('RGB', (total_width, total_height), color=bg_color)
             draw = ImageDraw.Draw(collage)
            
-            try:
-                name_font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", name_font_size)
-                title_font = ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc", title_size)
-            except:
-                name_font = ImageFont.load_default()
-                title_font = ImageFont.load_default()
+            name_font = load_font(name_font_size)
+            title_font = load_font(title_size)
            
             for idx, (thumb, name) in enumerate(zip(thumbs, names)):
                 row = idx // cols_per_row
