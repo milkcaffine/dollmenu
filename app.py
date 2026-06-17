@@ -13,19 +13,21 @@ with st.sidebar:
     
     cols_per_row = st.slider("한 줄에 몇 장?", 1, 10, 4)
     thumb_size = st.slider("사진 기본 크기 (px)", 150, 600, 320)
-    scale_factor = st.slider("최종 해상도 배율", 1.0, 3.0, 1.5, 0.1)
+    scale_factor = st.slider("최종 해상도 배율", 1.0, 3.0, 1.6, 0.1)
     
     bg_color = st.color_picker("배경색", "#1E1E1E")
     border_color = st.color_picker("테두리 색상", "#E0E0E0")
     border_width = st.slider("테두리 두께 (px)", 0, 25, 10)
     
-    padding = st.slider("사진 사이 여백 (px)", 0, 60, 20)
+    padding = st.slider("사진 사이 여백 (px)", 0, 60, 18)
     
-    name_font_size = st.slider("인형 이름 글자 크기", 15, 60, 36)
+    # 이름 글자 크게 강화
+    name_font_size = st.slider("인형 이름 글자 크기", 20, 80, 48)
     name_color = st.color_picker("이름 색상", "#FFFFFF")
+    name_y_offset = st.slider("이름 위치 (아래로)", -10, 40, 5)  # 새로 추가: 간격 조절
     
     title_text = st.text_input("전체 제목", "Haemin's Doll Collection")
-    title_size = st.slider("전체 제목 글자 크기", 20, 100, 55)
+    title_size = st.slider("전체 제목 글자 크기", 20, 120, 60)
     title_color = st.color_picker("제목 색상", "#FFFFFF")
 
 # ==================== 메인 ====================
@@ -46,9 +48,8 @@ if uploaded_files:
             name = st.text_input(f"사진 {idx+1}", value=default_name, key=f"name_{idx}")
             names.append(name)
     
-    # size="large" 제거 + use_container_width로 크게 표시
     if st.button("🎨 콜라주 생성하기", type="primary", use_container_width=True):
-        with st.spinner("콜라주 만드는 중... (조금만 기다려주세요)"):
+        with st.spinner("콜라주 만드는 중..."):
             images = [Image.open(file).convert("RGB") for file in uploaded_files]
             
             final_thumb = int(thumb_size * scale_factor)
@@ -63,7 +64,7 @@ if uploaded_files:
             rows = math.ceil(n / cols_per_row)
             cell_size = final_thumb + border_width * 2
             total_width = cols_per_row * (cell_size + padding) - padding
-            total_height = rows * (cell_size + padding) + 180
+            total_height = rows * (cell_size + padding) + 200
             
             collage = Image.new('RGB', (total_width, total_height), color=bg_color)
             draw = ImageDraw.Draw(collage)
@@ -83,11 +84,14 @@ if uploaded_files:
                 
                 collage.paste(thumb, (x, y))
                 
+                # 이름 위치 (간격 크게 줄임)
                 text_width = draw.textlength(name, font=name_font)
                 text_x = x + (cell_size - text_width) // 2
-                text_y = y + cell_size + 12
+                text_y = y + cell_size + name_y_offset   # 여기서 조절
+                
                 draw.text((text_x, text_y), name, fill=name_color, font=name_font)
             
+            # 전체 제목
             title_w = draw.textlength(title_text, font=title_font)
             draw.text(((total_width - title_w)/2, total_height - 110), 
                      title_text, fill=title_color, font=title_font)
