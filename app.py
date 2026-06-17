@@ -12,21 +12,21 @@ with st.sidebar:
     st.header("⚙️ 설정")
    
     cols_per_row = st.slider("한 줄에 몇 장?", 1, 10, 3)
-    scale_factor = st.slider("최종 해상도 배율", 1.0, 3.0, 1.8, 0.1)
+    scale_factor = st.slider("사진 & 전체 해상도 배율", 1.0, 4.0, 2.0, 0.1)
    
     bg_color = st.color_picker("배경색", "#1E1E1E")
     border_color = st.color_picker("테두리 색상", "#E0E0E0")
-    border_width = st.slider("테두리 두께 (px)", 0, 25, 8)
+    border_width = st.slider("테두리 두께 (px)", 0, 30, 10)
    
-    padding = st.slider("사진 사이 여백 (px)", 0, 60, 20)
+    padding = st.slider("사진 사이 여백 (px)", 0, 80, 30)
    
-    # 이름 관련 (이제 비례 조정 가능)
-    name_font_size_base = st.slider("이름 글자 크기 (기본)", 60, 500, 220, 10)
+    # 이름 설정 (독립적으로 크게)
+    name_font_size_base = st.slider("이름 글자 크기", 80, 800, 320, 10)
     name_color = st.color_picker("이름 색상", "#FFFFFF")
-    name_y_offset = st.slider("이름 위치 (아래로)", 0, 120, 25)
+    name_y_offset = st.slider("이름 위치 (아래로)", 0, 150, 45)
    
     title_text = st.text_input("전체 제목", "Haemin's Doll Collection")
-    title_size = st.slider("전체 제목 글자 크기", 30, 200, 80)
+    title_size = st.slider("전체 제목 글자 크기", 40, 250, 100)
     title_color = st.color_picker("제목 색상", "#FFFFFF")
 
 # ==================== 메인 ====================
@@ -43,15 +43,16 @@ if uploaded_files:
    
     for idx, file in enumerate(uploaded_files):
         with cols[idx % len(cols)]:
-            default_name = file.name.split('.')[0][:25]
+            default_name = file.name.split('.')[0][:30]
             name = st.text_input(f"사진 {idx+1}", value=default_name, key=f"name_{idx}")
             names.append(name)
    
     if st.button("🎨 콜라주 생성하기", type="primary", use_container_width=True):
-        with st.spinner("콜라주 만드는 중... (조금만 기다려~)"):
+        with st.spinner("콜라주 만드는 중... 조금만 기다려~"):
             images = [Image.open(file).convert("RGB") for file in uploaded_files]
            
-            final_thumb = int(150 * scale_factor)
+            # 사진 크기 (scale_factor로만 조절)
+            final_thumb = int(220 * scale_factor)   # 기본 사진 크기 좀 더 크게 조정
             thumbs = []
             for img in images:
                 img = ImageOps.fit(img, (final_thumb, final_thumb), method=Image.Resampling.LANCZOS)
@@ -61,14 +62,16 @@ if uploaded_files:
            
             n = len(thumbs)
             rows = math.ceil(n / cols_per_row)
-            cell_size = final_thumb + border_width * 2
+            cell_size = final_thumb + border_width * 2   # 사진+테두리 크기
+            
+            # 이름 폰트 크기 (scale_factor 반영)
+            name_font_size = int(name_font_size_base * scale_factor * 0.95)
            
-            # 이름 폰트 크기 = base * scale_factor
-            name_font_size = int(name_font_size_base * scale_factor)
-           
+            # === 높이 계산 개선 ===
+            name_area_height = name_font_size + name_y_offset + 80
+            cell_height = cell_size + name_area_height
             total_width = cols_per_row * (cell_size + padding) - padding
-            name_area = name_font_size + 120
-            total_height = rows * (cell_size + padding) + name_area + title_size + 180
+            total_height = rows * (cell_height + padding) - padding + title_size + 220
            
             collage = Image.new('RGB', (total_width, total_height), color=bg_color)
             draw = ImageDraw.Draw(collage)
@@ -83,24 +86,26 @@ if uploaded_files:
             for idx, (thumb, name) in enumerate(zip(thumbs, names)):
                 row = idx // cols_per_row
                 col = idx % cols_per_row
+                
                 x = col * (cell_size + padding)
-                y = row * (cell_size + padding)
+                y = row * (cell_height + padding)
                
+                # 사진 붙이기
                 collage.paste(thumb, (x, y))
                
-                # 정확한 텍스트 너비 계산
+                # 이름 텍스트 (정확한 중앙 정렬)
                 text_bbox = draw.textbbox((0, 0), name, font=name_font)
                 text_width = text_bbox[2] - text_bbox[0]
                 text_x = x + (cell_size - text_width) // 2
                 text_y = y + cell_size + name_y_offset
-               
+                
                 draw.text((text_x, text_y), name, fill=name_color, font=name_font)
            
-            # 제목
+            # 전체 제목
             title_bbox = draw.textbbox((0, 0), title_text, font=title_font)
             title_w = title_bbox[2] - title_bbox[0]
             title_x = (total_width - title_w) // 2
-            title_y = total_height - title_size - 80
+            title_y = total_height - title_size - 100
             draw.text((title_x, title_y), title_text, fill=title_color, font=title_font)
            
             st.image(collage, caption="✅ 완성!", use_column_width=True)
