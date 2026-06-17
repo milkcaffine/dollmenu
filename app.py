@@ -1,4 +1,4 @@
-pythonimport streamlit as st
+import streamlit as st
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import math
 import os
