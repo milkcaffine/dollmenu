@@ -12,8 +12,12 @@ def load_font(size):
     ]
     for path in candidates:
         if os.path.exists(path):
-            return ImageFont.truetype(path, size)
-    st.warning("CJK 폰트를 못 찾았어요. 글자가 작게 나옵니다.")
+            try:
+                return ImageFont.truetype(path, size)
+            except OSError as e:
+                st.warning(f"폰트 열기 실패: {path} / 크기 {os.path.getsize(path)} bytes / {e}")
+                continue
+    st.warning("쓸 수 있는 CJK 폰트를 못 찾았어요.")
     return ImageFont.load_default()
 
 st.set_page_config(page_title="인형 프로필 콜라주 메이커", layout="wide")
