@@ -11,23 +11,22 @@ st.caption("SD/BJD 인형 사진 → 예쁜 콜라주 JPG")
 with st.sidebar:
     st.header("⚙️ 설정")
     
-    cols_per_row = st.slider("한 줄에 몇 장?", 1, 10, 4)
-    thumb_size = st.slider("사진 기본 크기 (px)", 150, 600, 320)
-    scale_factor = st.slider("최종 해상도 배율", 1.0, 3.0, 1.6, 0.1)
+    cols_per_row = st.slider("한 줄에 몇 장?", 1, 10, 3)   # 3000 크기라 3~4 추천
+    scale_factor = st.slider("최종 해상도 배율", 1.0, 3.0, 1.8, 0.1)
     
     bg_color = st.color_picker("배경색", "#1E1E1E")
     border_color = st.color_picker("테두리 색상", "#E0E0E0")
-    border_width = st.slider("테두리 두께 (px)", 0, 25, 10)
+    border_width = st.slider("테두리 두께 (px)", 0, 25, 8)
     
-    padding = st.slider("사진 사이 여백 (px)", 0, 60, 18)
+    padding = st.slider("사진 사이 여백 (px)", 0, 60, 20)
     
-    # 이름 글자 크기 대폭 확대
-    name_font_size = st.slider("인형 이름 글자 크기", 200, 1000, 280)
+    # 이름 관련 (고정)
+    name_font_size = 3000          # 완전 고정
     name_color = st.color_picker("이름 색상", "#FFFFFF")
-    name_y_offset = st.slider("이름 위치 (아래로)", 0, 3, 1)   # 0~3으로 제한
+    name_y_offset = st.slider("이름 위치 (아래로)", 0, 5, 2)
     
     title_text = st.text_input("전체 제목", "Haemin's Doll Collection")
-    title_size = st.slider("전체 제목 글자 크기", 20, 150, 65)
+    title_size = st.slider("전체 제목 글자 크기", 30, 200, 80)
     title_color = st.color_picker("제목 색상", "#FFFFFF")
 
 # ==================== 메인 ====================
@@ -49,10 +48,10 @@ if uploaded_files:
             names.append(name)
     
     if st.button("🎨 콜라주 생성하기", type="primary", use_container_width=True):
-        with st.spinner("콜라주 만드는 중... (글자 크기가 커서 조금 더 걸릴 수 있어요)"):
+        with st.spinner("콜라주 만드는 중... (글자가 매우 커서 시간이 좀 걸려요)"):
             images = [Image.open(file).convert("RGB") for file in uploaded_files]
             
-            final_thumb = int(thumb_size * scale_factor)
+            final_thumb = int(150 * scale_factor)   # 사진 기본 크기 150 고정
             thumbs = []
             for img in images:
                 img = ImageOps.fit(img, (final_thumb, final_thumb), method=Image.Resampling.LANCZOS)
@@ -64,9 +63,9 @@ if uploaded_files:
             rows = math.ceil(n / cols_per_row)
             cell_size = final_thumb + border_width * 2
             
-            # 이름 글자가 매우 커졌으므로 높이 여유 크게 증가
+            # 이름 크기가 3000이라 높이 대폭 증가
             total_width = cols_per_row * (cell_size + padding) - padding
-            total_height = rows * (cell_size + padding) + 300 + (name_font_size * 2)
+            total_height = rows * (cell_size + padding) + 800 + (name_font_size // 2)
             
             collage = Image.new('RGB', (total_width, total_height), color=bg_color)
             draw = ImageDraw.Draw(collage)
@@ -86,7 +85,6 @@ if uploaded_files:
                 
                 collage.paste(thumb, (x, y))
                 
-                # 이름 위치
                 text_width = draw.textlength(name, font=name_font)
                 text_x = x + (cell_size - text_width) // 2
                 text_y = y + cell_size + name_y_offset
@@ -95,7 +93,7 @@ if uploaded_files:
             
             # 전체 제목
             title_w = draw.textlength(title_text, font=title_font)
-            draw.text(((total_width - title_w)/2, total_height - 140), 
+            draw.text(((total_width - title_w)/2, total_height - 180), 
                      title_text, fill=title_color, font=title_font)
             
             st.image(collage, caption="✅ 완성!", use_column_width=True)
