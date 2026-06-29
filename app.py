@@ -66,7 +66,7 @@ if uploaded_files:
    
     if st.button("🎨 콜라주 생성하기", type="primary", use_container_width=True):
         with st.spinner("콜라주 만드는 중... 조금만 기다려~"):
-            images = [Image.open(file).convert("RGB") for file in uploaded_files]
+            images = [ImageOps.exif_transpose(Image.open(file)).convert("RGB") for file in uploaded_files]
            
             # 사진 크기 (scale_factor로만 조절)
             final_thumb = int(220 * scale_factor)   # 기본 사진 크기 좀 더 크게 조정
